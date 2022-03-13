@@ -28,6 +28,10 @@
 /* Pre-compile option for Version Info API */
 #define PORT_VERSION_INFO_API                (STD_ON)
 
+
+/* Pre_compile Option for SetPinDirection Api */
+#define PORT_SET_PIN_DIRECTION                (STD_ON)
+
 /* Number of the configured Dio Channels */
 #define PORT_CONFIGURED_CHANNLES             (43U)
 
@@ -56,7 +60,7 @@
  ////////////////////////////////////////////////////////
 
 /* Default Mode Of Configuration */
-#define PortConfig_Mode_ADC        (uint8)9/* ADC Mode */
+#define PortConfig_Mode_ADC        (uint8)9     /* ADC Mode */
 #define PortConfig_Mode_GPIO       (uint8)0   /* GPIO Mode */
 #define PortConfig_Mode_UART       (uint8)1   /* UART Mode */
 #define PortConfig_Mode_SSI        (uint8)2   /* SSI Mode */

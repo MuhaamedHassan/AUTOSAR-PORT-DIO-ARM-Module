@@ -91,7 +91,7 @@ void Port_Init(const Port_ConfigType * ConfigPtr)
 	           else if( (Port_PortChannels[i].port_num == PortConfig_PORTC_NUM) && (Port_PortChannels[i].pin_num <= PortConfig_PIN3_NUM) ) /* PC0 to PC3 */
 	           {
 	               /* Do Nothing ...  this is the JTAG pins */
-	               return;
+	               continue;
 	           }
 	           else
 	           {
@@ -238,6 +238,7 @@ void Port_Init(const Port_ConfigType * ConfigPtr)
 * Return value: None
 * Description: Function to Set The Direction Of Pin.
 ************************************************************************************/
+#if (PORT_SET_PIN_DIRECTION == STD_ON)
 void Port_SetPinDirection( Port_PinType Pin, Port_PinDirectionType Direction )
 {
 	boolean error = FALSE ;
@@ -258,6 +259,16 @@ void Port_SetPinDirection( Port_PinType Pin, Port_PinDirectionType Direction )
 	{
 		Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID, Port_SetPinDirection_SID,
 				     PORT_E_UNINIT);
+		error = TRUE ;
+	}
+	else
+	{
+		/* Do Nothing */
+	}
+	if (Port_PortChannels[Pin].direction_changeable == DIRECTION_CHANGE_OFF)
+	{
+		Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID, Port_SetPinDirection_SID,
+						     PORT_E_DIRECTION_UNCHANGEABLE);
 		error = TRUE ;
 	}
 	else
@@ -312,56 +323,10 @@ void Port_SetPinDirection( Port_PinType Pin, Port_PinDirectionType Direction )
 		if (Direction == PORT_PIN_OUT)
 		{
 			SET_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_DIR_REG_OFFSET) , Port_PortChannels[Pin].pin_num);                /* Set the corresponding bit in the GPIODIR register to configure it as output pin */
-            #if (PORT_DEV_ERROR_DETECT == STD_ON)
-	             if (BIT_IS_CLEAR(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_DIR_REG_OFFSET) , Port_PortChannels[Pin].pin_num))
-	             {
-	            	 Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID, Port_SetPinDirection_SID,
-	            	 		     PORT_E_DIRECTION_UNCHANGEABLE);
-	            	 		error = TRUE ;
-	             }
-	             else
-	             {
-	            	 /* Do Nothing */
-	             }
-            #endif
-
-	          if(Port_PortChannels[Pin].initial_value == STD_HIGH)
-	          {
-	            SET_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_DATA_REG_OFFSET) , Port_PortChannels[Pin].pin_num);          /* Set the corresponding bit in the GPIODATA register to provide initial value 1 */
-	           }
-	          else
-	           {
-	             CLEAR_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_DATA_REG_OFFSET) , Port_PortChannels[Pin].pin_num);        /* Clear the corresponding bit in the GPIODATA register to provide initial value 0 */
-	            }
 		   }
 		else if (Direction == PORT_PIN_IN)
 		{
 			CLEAR_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_DIR_REG_OFFSET) , Port_PortChannels[Pin].pin_num);                /* Set the corresponding bit in the GPIODIR register to configure it as output pin */
-            #if (PORT_DEV_ERROR_DETECT == STD_ON)
-	             if (BIT_IS_SET(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_DIR_REG_OFFSET) , Port_PortChannels[Pin].pin_num))
-	             {
-	            	 Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID, Port_SetPinDirection_SID,
-	            	 		     PORT_E_DIRECTION_UNCHANGEABLE);
-	            	 		error = TRUE ;
-	             }
-	             else
-	             {
-	            	 /* Do Nothing */
-	             }
-            #endif
-	             if(Port_PortChannels[Pin].resistor == PULL_UP)
-				   {
-					   SET_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_PULL_UP_REG_OFFSET) , Port_PortChannels[Pin].pin_num);       /* Set the corresponding bit in the GPIOPUR register to enable the internal pull up pin */
-				   }
-				   else if(Port_PortChannels[Pin].resistor == PULL_DOWN)
-				   {
-					   SET_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_PULL_DOWN_REG_OFFSET) , Port_PortChannels[Pin].pin_num);     /* Set the corresponding bit in the GPIOPDR register to enable the internal pull down pin */
-				   }
-				   else
-				   {
-					   CLEAR_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_PULL_UP_REG_OFFSET) , Port_PortChannels[Pin].pin_num);     /* Clear the corresponding bit in the GPIOPUR register to disable the internal pull up pin */
-					   CLEAR_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_PULL_DOWN_REG_OFFSET) , Port_PortChannels[Pin].pin_num);   /* Clear the corresponding bit in the GPIOPDR register to disable the internal pull down pin */
-				   }
 		}
 		else
 		{
@@ -374,7 +339,7 @@ void Port_SetPinDirection( Port_PinType Pin, Port_PinDirectionType Direction )
 		/* Do Nothing */
 	}
 }
-
+#endif
 /************************************************************************************
 * Service Name: Port_RefreshPortDirection
 * Service ID[hex]: 0x02
@@ -442,46 +407,32 @@ void Port_RefreshPortDirection(void)
 			        else if( (Port_PortChannels[i].port_num == PortConfig_PORTC_NUM) && (Port_PortChannels[i].pin_num <= PortConfig_PIN3_NUM) ) /* PC0 to PC3 */
 			        {
 			        /* Do Nothing ...  this is the JTAG pins */
-			        return;
+			        continue;
 			        }
 			        else
 			        {
 			        /* Do Nothing ... No need to unlock the commit register for this pin */
 			        }
-			        if(Port_PortChannels[i].direction == PORT_PIN_OUT)
-			        {
-			       	SET_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_DIR_REG_OFFSET) , Port_PortChannels[i].pin_num);                /* Set the corresponding bit in the GPIODIR register to configure it as output pin */
-			            if(Port_PortChannels[i].initial_value == STD_HIGH)
-			            {
-			                SET_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_DATA_REG_OFFSET) , Port_PortChannels[i].pin_num);          /* Set the corresponding bit in the GPIODATA register to provide initial value 1 */
-			            }
-			            else
-			            {
-			                CLEAR_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_DATA_REG_OFFSET) , Port_PortChannels[i].pin_num);        /* Clear the corresponding bit in the GPIODATA register to provide initial value 0 */
-			            }
-			        }
-			        else if(Port_PortChannels[i].direction == PORT_PIN_IN)
-			        {
-			            CLEAR_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_DIR_REG_OFFSET) , Port_PortChannels[i].pin_num);             /* Clear the corresponding bit in the GPIODIR register to configure it as input pin */
+			       if (Port_PortChannels[i].direction_changeable == DIRECTION_CHANGE_OFF)
+			       {
+			    	   /* Do Nothing */
+			       }
+			       else
+			       {
+			    	   if(Port_PortChannels[i].direction == PORT_PIN_OUT)
+			    	   	{
+			    		   SET_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_DIR_REG_OFFSET) , Port_PortChannels[i].pin_num);                /* Set the corresponding bit in the GPIODIR register to configure it as output pin */
+			    	   	}
+			    	   	else if(Port_PortChannels[i].direction == PORT_PIN_IN)
+			    	   	{
+			    	   		CLEAR_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_DIR_REG_OFFSET) , Port_PortChannels[i].pin_num);             /* Clear the corresponding bit in the GPIODIR register to configure it as input pin */
+			    	   	}
+			    	   	else
+			    	   	{
+			    	   			 /* Do Nothing */
+			    	   	}
+			       }
 
-			            if(Port_PortChannels[i].resistor == PULL_UP)
-			            {
-			                SET_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_PULL_UP_REG_OFFSET) , Port_PortChannels[i].pin_num);       /* Set the corresponding bit in the GPIOPUR register to enable the internal pull up pin */
-			            }
-			            else if(Port_PortChannels[i].resistor == PULL_DOWN)
-			            {
-			                SET_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_PULL_DOWN_REG_OFFSET) , Port_PortChannels[i].pin_num);     /* Set the corresponding bit in the GPIOPDR register to enable the internal pull down pin */
-			            }
-			            else
-			            {
-			                CLEAR_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_PULL_UP_REG_OFFSET) , Port_PortChannels[i].pin_num);     /* Clear the corresponding bit in the GPIOPUR register to disable the internal pull up pin */
-			                CLEAR_BIT(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_PULL_DOWN_REG_OFFSET) , Port_PortChannels[i].pin_num);   /* Clear the corresponding bit in the GPIOPDR register to disable the internal pull down pin */
-			            }
-			        }
-			        else
-			        {
-			            /* Do Nothing */
-			        }
 			 }
 	}
 	else
@@ -504,7 +455,7 @@ void Port_RefreshPortDirection(void)
 #if (PORT_VERSION_INFO_API == STD_ON)
 void Port_GetVersionInfo(Std_VersionInfoType *versioninfo)
 {
-      #if (PORT_DEV_ERROR_DETECT == STD_ON)
+     #if (PORT_DEV_ERROR_DETECT == STD_ON)
 	/* Check if input pointer is not Null pointer */
 	if(NULL_PTR == versioninfo)
 	{
@@ -512,15 +463,21 @@ void Port_GetVersionInfo(Std_VersionInfoType *versioninfo)
 		Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID,
 				Port_GetVersionInfo_SID, PORT_E_PARAM_POINTER);
 	}
-	else if(Port_Status == PORT_NOT_INITIALIZED)
+	else
+	{
+		/* Do Nothing */
+	}
+	if(Port_Status == PORT_NOT_INITIALIZED)
 	{
 		Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID, Port_GetVersionInfo_SID,
 				 PORT_E_UNINIT);
 	}
 	else
-
-        #endif /* (DIO_DEV_ERROR_DETECT == STD_ON) */
 	{
+		 /* Do Nothing */
+	}
+
+	#endif /* (DIO_DEV_ERROR_DETECT == STD_ON) */
 		/* Copy the vendor Id */
 		versioninfo->vendorID = (uint16)PORT_VENDOR_ID;
 		/* Copy the module Id */
@@ -531,7 +488,6 @@ void Port_GetVersionInfo(Std_VersionInfoType *versioninfo)
 		versioninfo->sw_minor_version = (uint8)PORT_SW_MINOR_VERSION;
 		/* Copy Software Patch Version */
 		versioninfo->sw_patch_version = (uint8)PORT_SW_PATCH_VERSION;
-	}
 }
 #endif
 /************************************************************************************
@@ -575,6 +531,16 @@ void Port_SetPinMode(Port_PinType Pin,Port_PinModeType Mode)
 	{
 		Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID, Port_SetPinMode_SID,
 				     PORT_E_UNINIT);
+		error = TRUE ;
+	}
+	else
+	{
+		/* Do Nothing */
+	}
+	if (Port_PortChannels[Pin].mode_changeable == MODE_CHANGE_OFF)
+	{
+		Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID, Port_SetPinMode_SID,
+						     PORT_E_MODE_UNCHANGEABLE);
 		error = TRUE ;
 	}
 	else
@@ -652,9 +618,6 @@ void Port_SetPinMode(Port_PinType Pin,Port_PinModeType Mode)
 	    case PortConfig_Mode_GPIO:
 	    	*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_CTL_REG_OFFSET) &= ~(0x0000000F << (Port_PortChannels[Pin].pin_num * 4));
 	    	break;
-	    case PortConfig_Mode_ADC:
-	    	/* Do Nothing */
-	    	break;
 	    case PortConfig_Mode_UART:
 	    	*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_CTL_REG_OFFSET) |= ((uint32)PortConfig_Mode_UART << (Port_PortChannels[Pin].pin_num * 4));
 	    	break;
@@ -717,38 +680,6 @@ void Port_SetPinMode(Port_PinType Pin,Port_PinModeType Mode)
 	    	}
 	    	break;
 	    }
-        #if (PORT_DEV_ERROR_DETECT == STD_ON)
-	     /* Check If Mode Is Changed */
-	    if (Mode == PortConfig_Mode_ADC)
-	    {
-	    	if (BIT_IS_CLEAR(*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_ANALOG_MODE_SEL_REG_OFFSET) , Port_PortChannels[Pin].pin_num))
-	    	{
-	    	Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID, Port_SetPinMode_SID,
-	    						     PORT_E_MODE_UNCHANGEABLE);
-	    		error = TRUE ;
-
-	    	}
-	    	else
-	    	{
-	    		/* Do Nothing */
-	    	}
-
-	    }
-	    else
-	    {
-	    	if (((*(volatile uint32 *)((volatile uint8 *)PortGpio_Ptr + PORT_CTL_REG_OFFSET)) >> ((Port_PortChannels[Pin].pin_num)*4) & 0x0000000F ) ==  Mode)
-	    	{
-	    		/* Do Nothing */
-	    	}
-	    	else
-	    	{
-	    		Det_ReportError(PORT_MODULE_ID, PORT_INSTANCE_ID, Port_SetPinMode_SID,
-	    			    						     PORT_E_MODE_UNCHANGEABLE);
-	    			    		error = TRUE ;
-
-	    	}
-	    }
-        #endif
 
 	}
 

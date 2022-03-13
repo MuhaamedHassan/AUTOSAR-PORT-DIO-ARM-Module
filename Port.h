@@ -125,7 +125,7 @@
 typedef enum
 {
     PORT_PIN_IN,PORT_PIN_OUT
-}Port_PinDirection;
+}Port_PinDirectionType;
 
 /* Description: Enum to hold internal resistor type for PIN */
 typedef enum
@@ -136,8 +136,16 @@ typedef enum
 /* The Definition Of Port_PinType Used By Port Api */
 typedef uint8 Port_PinType ;
 
-/*The Definition Of Port_PinDirectionType Used By Port Api*/
-typedef Port_PinDirection Port_PinDirectionType ;
+/* The Definition Of Port_PinDirectionChangeable To Check If Pin Is Changeable Or Not */
+typedef enum {
+	DIRECTION_CHANGE_OFF , DIRECTION_CHANGE_ON
+}Port_PinDirectionChangeable;
+
+/* The Definition Of Port_PinmodeChangeable To Check If Pin Is Changeable Or Not */
+typedef enum {
+	MODE_CHANGE_OFF , MODE_CHANGE_ON
+}Port_PinModeChangeable;
+
 
 /* The Definition of Port_PinMode Type Used By Port Api */
 typedef uint8 Port_PinModeType ;
@@ -155,10 +163,12 @@ typedef struct
 {
     uint8 port_num;
     uint8 pin_num;
-    Port_PinDirection direction;
+    Port_PinDirectionType direction;
     Port_InternalResistor resistor;
+    Port_PinDirectionChangeable direction_changeable ;
     uint8 initial_value;
     Port_PinModeType pin_mode ;
+    Port_PinModeChangeable mode_changeable ;
 }Port_ConfigChannel;
 
 /* Data Structure Required For Init  The Port Driver */
@@ -173,9 +183,10 @@ typedef struct Port_ConfigType
 void Port_Init(const Port_ConfigType* ConfigPtr);
 
 
+#if (PORT_SET_PIN_DIRECTION == STD_ON)
 /*Function To Change Direction Of Pin */
-void Port_SetPinDirection(Port_PinType Pin,Port_PinDirection Direction);
-
+void Port_SetPinDirection(Port_PinType Pin,Port_PinDirectionType Direction);
+#endif
 
 /*Function For Refresh Port Direction */
 void Port_RefreshPortDirection(void);

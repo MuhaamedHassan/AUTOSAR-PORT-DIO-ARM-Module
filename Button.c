@@ -9,33 +9,10 @@
  * Author: Mohamed Tarek
  ******************************************************************************/
 #include "Dio.h"
-#include "Port.h"
 #include "Button.h"
-
-/* Button Configurations Structure */
-static Port_ConfigChannel g_Button_Config;
 
 /* Global variable to hold the button state */
 static uint8 g_button_state = BUTTON_RELEASED;
-
-/*******************************************************************************************************************/
-/* Description: Called by the Button_Init function (only) used to fill the Button configurations structure */
-static void BUTTON_configurations(void)
-{
-    g_Button_Config.port_num  = BUTTON_PORT;             /* Set Button PORT value */
-    g_Button_Config.pin_num   = BUTTON_PIN_NUM;          /* Set Button PIN Number value */
-    g_Button_Config.direction = PORT_PIN_IN;                   /* Set Button as INPUT pin */
-    g_Button_Config.resistor  = PULL_UP;                 /* Enable Intrnal pull up at this pin */
-    g_Button_Config.initial_value  = STD_HIGH;    /* Button is released */
-    g_Button_Config.pin_mode =  PortConfig_Mode_GPIO ;  
-}
-
-/*******************************************************************************************************************/
-void BUTTON_init(void)
-{
-    BUTTON_configurations();
-    Port_Init(&Port_Configuration);
-}
 
 /*******************************************************************************************************************/
 uint8 BUTTON_getState(void)

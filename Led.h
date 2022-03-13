@@ -18,16 +18,11 @@
 #define LED_OFF STD_LOW
 
 /* Set the LED Port */
-#define LED_PORT DioConf_LED1_PORT_NUM
+#define LED_PORT PortConfig_PORTF_NUM
 
 /* Set the LED Pin Number */
-#define LED_PIN_NUM DioConf_LED1_CHANNEL_NUM
+#define LED_PIN_NUM PortConfig_PIN1_NUM
 
-/* Description: 1. Fill the led configurations structure 
- *              2. Set the PIN direction which the led is connected as OUTPUT pin
- *		3. Initialize the led ON/OFF according to the initial value 
- */
-void LED_init(void);
 
 /* Description: Set the LED state to ON */
 void LED_setOn(void);
